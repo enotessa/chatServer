@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:~/chatdb  # "testdb" — имя БД в памяти
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true  # Включает консоль H2
+      path: /h2-console  # URL для доступа к консоли
+  jpa:
+    hibernate:
+      ddl-auto: update  # Автоматическое создание таблиц
+    show-sql: true      # Показывать SQL-запросы в логах
+server:
+  port: 8082
