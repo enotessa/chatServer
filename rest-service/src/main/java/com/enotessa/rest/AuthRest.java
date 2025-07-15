@@ -1,6 +1,6 @@
 package com.enotessa.rest;
 
-import com.enotessa.dto.AuthResponse;
+import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.services.AuthService;
 import jakarta.validation.Valid;
@@ -13,13 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-public class RegistrationRest {
+public class AuthRest {
     @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request ) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequest request ) {
+        authService.register(request);
+        return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@RequestBody @Valid LoginRequest request ) {
+        authService.login(request);
+        return ResponseEntity.ok().build();
+    }
 }

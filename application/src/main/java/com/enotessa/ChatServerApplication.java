@@ -2,10 +2,10 @@ package com.enotessa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@EntityScan(basePackages = "com.enotessa.entities")
+@EnableJpaRepositories("com.enotessa.repositories")  // Важно!
 public class ChatServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(ChatServerApplication.class, args);

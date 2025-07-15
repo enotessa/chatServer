@@ -1,6 +1,6 @@
 package com.enotessa.services;
 
-import com.enotessa.dto.AuthResponse;
+import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
 import com.enotessa.repositories.UserRepository;
@@ -12,16 +12,10 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    public AuthResponse register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
         checkUnique(request);
         User user = createUserFromRequest(request);
-        User savedUser = userRepository.save(user);
-
-        return new AuthResponse(
-                        savedUser.getId(),
-                        savedUser.getLogin(),
-                        savedUser.getEmail()
-        );
+        userRepository.save(user);
     }
 
     private User createUserFromRequest(RegisterRequest request) {
@@ -38,6 +32,14 @@ public class AuthService {
         }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
+        }
+    }
+
+    public void login(LoginRequest request) {
+        User user = userRepository.findByLogin(request.getLogin())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if ( !request.getPassword().equals(user.getPassword())) {
+            throw new RuntimeException("Invalid password");
         }
     }
 }
