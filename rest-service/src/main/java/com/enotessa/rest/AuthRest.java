@@ -2,6 +2,7 @@ package com.enotessa.rest;
 
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
+import com.enotessa.dto.TokenResponce;
 import com.enotessa.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,14 @@ public class AuthRest {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequest request ) {
-        authService.register(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TokenResponce> register(@RequestBody @Valid RegisterRequest request) {
+        String token = authService.register(request);
+        return ResponseEntity.ok(new TokenResponce(token));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestBody @Valid LoginRequest request ) {
-        authService.login(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TokenResponce> login(@RequestBody @Valid LoginRequest request) {
+        String token = authService.login(request);
+        return ResponseEntity.ok(new TokenResponce(token));
     }
 }

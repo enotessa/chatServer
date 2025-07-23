@@ -4,18 +4,26 @@ import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
 import com.enotessa.repositories.UserRepository;
+import com.enotessa.security.CustomUserDetails;
+import com.enotessa.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private JwtService jwtService;
 
-    public void register(RegisterRequest request) {
+    public String register(RegisterRequest request) {
         checkUnique(request);
         User user = createUserFromRequest(request);
         userRepository.save(user);
+
+        UserDetails userDetails = new CustomUserDetails(user);
+        return jwtService.generateToken(userDetails);
     }
 
     private User createUserFromRequest(RegisterRequest request) {
@@ -35,11 +43,15 @@ public class AuthService {
         }
     }
 
-    public void login(LoginRequest request) {
-        User user = userRepository.findByLogin(request.getLogin())
+    public String login(LoginRequest request) {
+        String username = request.getLogin();
+        User user = userRepository.findByLogin(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if ( !request.getPassword().equals(user.getPassword())) {
+        if (!request.getPassword().equals(user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
+
+        UserDetails userDetails = new CustomUserDetails(user);
+        return jwtService.generateToken(userDetails);
     }
 }

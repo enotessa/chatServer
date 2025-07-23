@@ -21,5 +21,10 @@
             <artifactId>data-access</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.enotessa</groupId>
+            <artifactId>security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

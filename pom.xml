@@ -20,7 +20,8 @@
         <module>rest-service</module>
 		<module>application</module>
         <module>data-access</module>
-    </modules>
+		<module>security</module>
+	</modules>
 
 	<properties>
 		<java.version>17</java.version>
