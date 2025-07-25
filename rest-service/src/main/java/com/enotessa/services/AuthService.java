@@ -3,6 +3,9 @@ package com.enotessa.services;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
+import com.enotessa.exceptions.ClientRequestException;
+import com.enotessa.exceptions.RegisterException;
+import com.enotessa.exceptions.ValidationException;
 import com.enotessa.repositories.UserRepository;
 import com.enotessa.security.CustomUserDetails;
 import com.enotessa.security.JwtService;
@@ -36,19 +39,19 @@ public class AuthService {
 
     private void checkUnique(RegisterRequest request) {
         if (userRepository.existsByLogin(request.getLogin())) {
-            throw new RuntimeException("Login already exists");
+            throw new RegisterException("Login already exists");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RegisterException("Email already exists");
         }
     }
 
     public String login(LoginRequest request) {
         String username = request.getLogin();
         User user = userRepository.findByLogin(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ValidationException("User not found"));
         if (!request.getPassword().equals(user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new ValidationException("Invalid password");
         }
 
         UserDetails userDetails = new CustomUserDetails(user);
