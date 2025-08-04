@@ -1,0 +1,31 @@
+# .github/workflows/ci.yml
+name: chatServer CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Клонирование репозитория
+        uses: actions/checkout@v4
+
+      - name: Установка Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Сборка и тестирование с Maven
+        run: mvn clean verify
+
+      - name: Архив артефакта (JAR-файла)
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatServer-jar
+          path: target/*.jar
