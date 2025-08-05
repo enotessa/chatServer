@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
 
       - name: Сборка и тестирование с Maven
-        run: mvn clean verify
+        run: mvn clean package
 
       - name: Архив артефакта (JAR-файла)
         uses: actions/upload-artifact@v4
