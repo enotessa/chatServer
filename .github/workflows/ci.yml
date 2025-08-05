@@ -29,3 +29,15 @@ jobs:
         with:
           name: chatServer-jar
           path: target/*.jar
+
+      - name: Построить Docker-образ
+        run: docker build -t chat-server-image -f Dockerfile .
+
+      - name: Сохранить Docker-образ как tar
+        run: docker save chat-server-image -o chat-server-image.tar
+
+      - name: Загрузить Docker-образ как артефакт
+        uses: actions/upload-artifact@v4
+        with:
+            name: chat-server-image
+            path: chat-server-image.tar
