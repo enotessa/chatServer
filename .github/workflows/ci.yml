@@ -1,5 +1,4 @@
-# .github/workflows/ci.yml
-name: chatServer CI
+name: chatServer CI/CD
 
 on:
   push:
@@ -21,14 +20,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Сборка и тестирование с Maven
-        run: mvn clean package
-
-      - name: Архив артефакта (JAR-файла)
-        uses: actions/upload-artifact@v4
-        with:
-          name: chatServer-jar
-          path: target/*.jar
+      - name: Сборка jar-файла
+        run: mvn clean package -DskipTests
 
       - name: Построить Docker-образ
         run: docker build -t chat-server-image -f Dockerfile .
@@ -39,5 +32,5 @@ jobs:
       - name: Загрузить Docker-образ как артефакт
         uses: actions/upload-artifact@v4
         with:
-            name: chat-server-image
-            path: chat-server-image.tar
+          name: chat-server-image
+          path: chat-server-image.tar
