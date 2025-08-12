@@ -3,7 +3,6 @@ package com.enotessa.services;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
-import com.enotessa.exceptions.ClientRequestException;
 import com.enotessa.exceptions.RegisterException;
 import com.enotessa.exceptions.ValidationException;
 import com.enotessa.repositories.UserRepository;

@@ -21,6 +21,7 @@
         <module>application</module>
         <module>data-access</module>
         <module>security</module>
+        <module>gpt-api</module>
     </modules>
 
     <properties>
