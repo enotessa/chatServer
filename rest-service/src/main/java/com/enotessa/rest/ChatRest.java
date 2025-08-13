@@ -1,6 +1,7 @@
 package com.enotessa.rest;
 
 import com.enotessa.dto.MessageDto;
+import com.enotessa.dto.ProfessionalPositionDto;
 import com.enotessa.services.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +24,9 @@ public class ChatRest {
         return ResponseEntity.ok(new MessageDto("HR", message, LocalDateTime.now()));
     }
 
-    /*TODO отдельный эндпоинт для смены темы собеседования*/
+    @PostMapping("/interviewProfession")
+    public ResponseEntity<Void> changeInterviewProfession(@RequestBody ProfessionalPositionDto request){
+        chatService.changeInterviewProfession(request);
+        return ResponseEntity.ok(null);
+    }
 }

@@ -1,5 +1,6 @@
 package com.enotessa.gpt;
 
+import com.enotessa.gpt.enums.ProfessionEnum;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,14 @@ public class GptService {
     @Value("${ai-api.gpt-model}")
     private String gptModel;
 
+    private ProfessionEnum profession;
+
+    private String PROMT = "ты проводишь собеседование на позицию %s. Задавай мне по одному вопросу";
+
+    GptService() {
+        profession = ProfessionEnum.JAVA_MIDDLE;
+    }
+
     public String sendChatRequest(String message) {
         try {
             HttpClient client = HttpClient.newHttpClient();
@@ -35,7 +44,7 @@ public class GptService {
                     .put("messages", new JSONArray()
                             .put(new JSONObject()
                                     .put("role", "system")
-                                    .put("text", "ты проводишь собеседование на позицию" + message))
+                                    .put("text", String.format(profession.getDisplayName(), PROMT)))
                             .put(new JSONObject()
                                     .put("role", "user")
                                     .put("text", message)));
@@ -62,5 +71,9 @@ public class GptService {
         } catch (Exception e) {
             throw new RuntimeException("Error sending request to OpenAI API: " + e.getMessage(), e);
         }
+    }
+
+    public void changeInterviewProfession(String profession) {
+        this.profession = ProfessionEnum.fromLabel(profession);
     }
 }
