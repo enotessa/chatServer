@@ -1,30 +1,39 @@
 package com.enotessa.gpt;
 
 import com.enotessa.gpt.enums.ProfessionEnum;
-import org.json.JSONArray;
+import com.enotessa.gpt.gptConfigures.GptRequestBuilder;
+import com.enotessa.gpt.objects.Message;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 
+@Scope(scopeName = "session")
 @Service
 public class GptService {
-    @Value("${ai-api.folder-id}")
-    private String folderId;
-    @Value("${ai-api.key}")
-    private String apiKey;
-    @Value("${ai-api.api-url}")
-    private String apiUrl;
-    @Value("${ai-api.gpt-model}")
-    private String gptModel;
-
+    @Autowired
+    private GptRequestBuilder gptRequestBuilder;
     private ProfessionEnum profession;
+    private List<Message> messagesArray = new ArrayList<>();
 
-    private String PROMT = "ты проводишь собеседование на позицию %s. Задавай мне по одному вопросу";
+    String ROLE_PROMT = "ты - интервьюер и проводишь мне собеседование";
+    String PROMT = """
+            ты проводишь собеседование на позицию %s.\s
+            Задавай мне по одному вопросу.\s
+            Пропусти вопрос об опыте.\s
+            Начинай сразу с технических вопросов.\s
+            После того, как я отвечаю на вопрос, ты говоришь, что я написал правильно,\s
+            а что направильно и задаешь следующий вопрос""";
+
+    private String SYSTEM_ROLE = "system";
+    private String USER_ROLE = "user";
+    private String ASSISTANT_ROLE = "assistant";
 
     GptService() {
         profession = ProfessionEnum.JAVA_MIDDLE;
@@ -32,41 +41,22 @@ public class GptService {
 
     public String sendChatRequest(String message) {
         try {
+            //TODO сделать нормальную реализацию с БД для messagesArray. пока что просто заглушка
+            messagesArray.add(new Message(USER_ROLE, message));
+
             HttpClient client = HttpClient.newHttpClient();
-            JSONObject body = new JSONObject()
-                    .put("modelUri", "gpt://" + folderId + "/" + gptModel + "/latest")
-                    .put("completionOptions", new JSONObject()
-                            .put("stream", false)
-                            .put("temperature", 0.6)
-                            .put("maxTokens", "2000")
-                            .put("reasoningOptions", new JSONObject()
-                                    .put("mode", "DISABLED")))
-                    .put("messages", new JSONArray()
-                            .put(new JSONObject()
-                                    .put("role", "system")
-                                    .put("text", String.format(profession.getDisplayName(), PROMT)))
-                            .put(new JSONObject()
-                                    .put("role", "user")
-                                    .put("text", message)));
-            /*TODO вынести в отдельную переменную массив для messages,
-               сделать отдельный метод для смены позиции, по которой будет проводиться собес,
-                сохранять историю в БД*/
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl))
-                    .header("Authorization", "Api-Key " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                    .build();
-
+            JSONObject body = gptRequestBuilder.createBody(messagesArray);
+            HttpRequest request = gptRequestBuilder.createRequest(body);
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             JSONObject json = new JSONObject(response.body());
+
             String answer = json.getJSONObject("result")
                     .getJSONArray("alternatives")
                     .getJSONObject(0)
                     .getJSONObject("message")
                     .getString("text");
-            /*TODO добавлять answer в массив с сообщениями messages*/
+            messagesArray.add(new Message(ASSISTANT_ROLE, answer));
+
             return answer;
         } catch (Exception e) {
             throw new RuntimeException("Error sending request to OpenAI API: " + e.getMessage(), e);
@@ -75,5 +65,8 @@ public class GptService {
 
     public void changeInterviewProfession(String profession) {
         this.profession = ProfessionEnum.fromLabel(profession);
+        messagesArray.clear();
+        messagesArray.add(new Message(SYSTEM_ROLE, ROLE_PROMT));
+        messagesArray.add(new Message(USER_ROLE, String.format(PROMT, profession)));
     }
 }

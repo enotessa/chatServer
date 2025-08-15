@@ -17,8 +17,10 @@ server:
 jwt:
   secret: Y2N8f8z1MPrxvRmfhg9i6LgrNuBxZl8MwVpFXuRvKUI=
   expirationMs: 3600000 # 1 час
-ai-api:
-  api-url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
-  gpt-model: yandexgpt
-  folder-id: b1g4j51ocjsr8ir3hdlf
-  key: ${YANDEX_API_KEY}
+gpt:
+  name: ${GPT_NAME:yandex}
+  yandex:
+    api-url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
+    gpt-model: yandexgpt
+    folder-id: b1g4j51ocjsr8ir3hdlf
+    key: ${YANDEX_API_KEY:#{null}}
