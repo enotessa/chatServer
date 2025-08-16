@@ -1,5 +1,8 @@
 package com.enotessa.gpt.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ProfessionEnum {
     JAVA_JUNIOR("Java Junior"),
     JAVA_MIDDLE("Java Middle"),
@@ -15,10 +18,6 @@ public enum ProfessionEnum {
 
     ProfessionEnum(String displayName) {
         this.displayName = displayName;
-    }
-
-    public String getDisplayName() {
-        return displayName;
     }
 
     public static ProfessionEnum fromLabel(String label) {
