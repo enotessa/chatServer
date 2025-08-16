@@ -5,7 +5,6 @@ import com.enotessa.gpt.gptConfigures.GptRequestBuilder;
 import com.enotessa.gpt.objects.Message;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.net.http.HttpClient;
@@ -14,7 +13,6 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-@Scope(scopeName = "session")
 @Service
 public class GptService {
     @Autowired
