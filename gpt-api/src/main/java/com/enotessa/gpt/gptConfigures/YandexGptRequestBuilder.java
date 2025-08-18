@@ -1,6 +1,6 @@
 package com.enotessa.gpt.gptConfigures;
 
-import com.enotessa.gpt.objects.Message;
+import com.enotessa.gpt.GptMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,7 @@ public class YandexGptRequestBuilder implements GptRequestBuilder {
     private String mode = "DISABLED";
 
     @Override
-    public JSONObject createBody(List<Message> messagesArray) {
+    public JSONObject createBody(List<GptMessage> messagesArray) {
         return new JSONObject()
                 .put("modelUri", "gpt://" + folderId + "/" + gptModel + "/latest")
                 .put("completionOptions", createCompletionOptions())
@@ -45,10 +45,10 @@ public class YandexGptRequestBuilder implements GptRequestBuilder {
                         .put("mode", mode));
     }
 
-    private JSONArray createJsonMessagesArray(List<Message> messagesArray) {
+    private JSONArray createJsonMessagesArray(List<GptMessage> messagesArray) {
         JSONArray jsonMessagesArray = new JSONArray();
         messagesArray.forEach(message -> jsonMessagesArray.put(new JSONObject()
-                .put("role", message.getSender())
+                .put("role", message.getRole())
                 .put("text", message.getMessage())));
         return jsonMessagesArray;
     }
