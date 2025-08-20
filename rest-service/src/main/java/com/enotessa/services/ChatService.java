@@ -4,11 +4,16 @@ import com.enotessa.dto.MessageDto;
 import com.enotessa.dto.ProfessionalPositionDto;
 import com.enotessa.entities.Message;
 import com.enotessa.entities.User;
+import com.enotessa.exceptions.GptServiceException;
+import com.enotessa.exceptions.UserNotFoundException;
 import com.enotessa.gpt.GptMessage;
 import com.enotessa.gpt.GptService;
 import com.enotessa.repositories.MessageRepository;
 import com.enotessa.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import org.junit.platform.commons.logging.Logger;
+import org.junit.platform.commons.logging.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -16,47 +21,44 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.enotessa.constants.ChatConstants.*;
+
 @Component
 @AllArgsConstructor
 public class ChatService {
+    private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private final GptService gptService;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final MessageService messageService;
 
-    private final String ROLE_PROMPT = "ты - интервьюер и проводишь мне собеседование";
-    private final String PROMPT_TEMPLATE = """
-            ты проводишь собеседование на позицию %s.\s
-            Задавай мне по одному вопросу.\s
-            Пропусти вопрос об опыте.\s
-            Начинай сразу с технических вопросов.\s
-            После того, как я отвечаю на вопрос, ты говоришь, что я написал правильно,\s
-            а что неправильно.\s
-            Если я уточняю что-то по предыдущему вопросу, то ответь на мои уточнения\s
-            и снова повтори вопрос, на который я не ответил.\s
-            Если мой ответ был не знаю, то ты даешь подсказку и предлагаешь еще раз попробовать ответить на вопрос.\s
-            Если мой ответ был \"дальше\", то ответь правильно на текущий вопрос и задай следующий""";
-
-    private final String SYSTEM_ROLE = "system";
-    private final String USER_ROLE = "user";
-    private final String ASSISTANT_ROLE = "assistant";
-
-    public String sendMessage(MessageDto request, UserDetails userDetails) {
+    public String sendMessage(@NonNull MessageDto request, @NonNull UserDetails userDetails) {
+        logger.debug(() -> "Processing message from user: " + userDetails.getUsername());
         validateMessage(request);
-        User user = getUserByLogin(userDetails.getUsername());
+        User user = getUserByLogin(userDetails.getUsername(), userDetails);
         saveUserMessage(request, user);
+        return processGptResponse(user, request.getMessage());
+    }
 
+    private String processGptResponse(User user, String message) {
         List<GptMessage> conversationHistory = loadConversationHistory(user);
-
-        String gptResponse = gptService.sendChatRequest(request.getMessage(), conversationHistory);
-        messageService.addMessage(gptResponse, ASSISTANT_ROLE, user, LocalDateTime.now());
-
-        return gptResponse;
+        try {
+            String gptResponse = gptService.sendChatRequest(message, conversationHistory);
+            messageService.addMessage(gptResponse, ASSISTANT_ROLE, user, LocalDateTime.now());
+            logger.debug(() -> "Received GPT response: " + gptResponse);
+            return gptResponse;
+        } catch (Exception e) {
+            logger.error(() -> "Failed to process GPT request for user "+user.getLogin()+": "+e.getMessage());
+            throw new GptServiceException("Failed to get response from GPT service", e);
+        }
     }
 
 
     public void changeInterviewProfession(ProfessionalPositionDto request, UserDetails userDetails) {
-        User user = getUserByLogin(userDetails.getUsername());
+        if (request.getProfessionalPosition() == null || request.getProfessionalPosition().isBlank()) {
+            throw new IllegalArgumentException(PROFESSION_IS_EMPTY);
+        }
+        User user = getUserByLogin(userDetails.getUsername(), userDetails);
         gptService.changeInterviewProfession(request.getProfessionalPosition());
 
         clearUserMessages(user);
@@ -64,7 +66,7 @@ public class ChatService {
     }
 
     public void deleteMessages(UserDetails userDetails) {
-        User user = getUserByLogin(userDetails.getUsername());
+        User user = getUserByLogin(userDetails.getUsername(), userDetails);
         clearUserMessages(user);
         initializeInterviewMessages(user, gptService.getProfession().getDisplayName());
     }
@@ -72,14 +74,14 @@ public class ChatService {
 
     //---------------------------
     private void validateMessage(MessageDto request) {
-        if (request.getMessage() == null || request.getMessage().isEmpty()) {
-            throw new IllegalArgumentException("Message cannot be empty");
+        if (request.getMessage().isBlank()) {
+            throw new IllegalArgumentException(EMPTY_MESSAGE_ERROR);
         }
     }
 
-    private User getUserByLogin(String login) {
+    private User getUserByLogin(@NonNull String login, @NonNull UserDetails userDetails) {
         return userRepository.findByLogin(login)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_ERROR));
     }
 
     private void saveUserMessage(MessageDto request, User user) {
@@ -94,8 +96,7 @@ public class ChatService {
     }
 
     private void clearUserMessages(User user) {
-        List<Message> oldMessages = messageRepository.findAllByUserOrderByIdAsc(user);
-        messageRepository.deleteAll(oldMessages);
+        messageRepository.deleteAllByUser(user);
     }
 
     private void initializeInterviewMessages(User user, String profession) {
