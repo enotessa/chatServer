@@ -10,9 +10,10 @@ public enum ProfessionEnum {
     KOTLIN_JUNIOR("Kotlin Junior"),
     KOTLIN_MIDDLE("Kotlin Middle"),
     KOTLIN_SENIOR("Kotlin Senior"),
-    IOS_JUNIOR("Ios Swift Junior"),
-    IOS_MIDDLE("Ios Swift Middle"),
-    IOS_SENIOR("Ios Swift Senior");
+    IOS_JUNIOR("iOS Swift Junior"),
+    IOS_MIDDLE("iOS Swift Middle"),
+    IOS_SENIOR("iOS Swift Senior"),
+    PSYCHOLOGIST("психолог");
 
     private final String displayName;
 

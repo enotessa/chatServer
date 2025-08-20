@@ -2,6 +2,7 @@ package com.enotessa.gpt;
 
 import com.enotessa.gpt.enums.ProfessionEnum;
 import com.enotessa.gpt.gptConfigures.GptRequestBuilder;
+import lombok.Getter;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.List;
 public class GptService {
     @Autowired
     private GptRequestBuilder gptRequestBuilder;
+    @Getter
     private ProfessionEnum profession;
 
     GptService() {

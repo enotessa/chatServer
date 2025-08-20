@@ -31,7 +31,11 @@ public class ChatService {
             Пропусти вопрос об опыте.\s
             Начинай сразу с технических вопросов.\s
             После того, как я отвечаю на вопрос, ты говоришь, что я написал правильно,\s
-            а что направильно и задаешь следующий вопрос""";
+            а что неправильно.\s
+            Если я уточняю что-то по предыдущему вопросу, то ответь на мои уточнения\s
+            и снова повтори вопрос, на который я не ответил.\s
+            Если мой ответ был не знаю, то ты даешь подсказку и предлагаешь еще раз попробовать ответить на вопрос.\s
+            Если мой ответ был \"дальше\", то ответь правильно на текущий вопрос и задай следующий""";
 
     private final String SYSTEM_ROLE = "system";
     private final String USER_ROLE = "user";
@@ -58,6 +62,13 @@ public class ChatService {
         clearUserMessages(user);
         initializeInterviewMessages(user, request.getProfessionalPosition());
     }
+
+    public void deleteMessages(UserDetails userDetails) {
+        User user = getUserByLogin(userDetails.getUsername());
+        clearUserMessages(user);
+        initializeInterviewMessages(user, gptService.getProfession().getDisplayName());
+    }
+
 
     //---------------------------
     private void validateMessage(MessageDto request) {
