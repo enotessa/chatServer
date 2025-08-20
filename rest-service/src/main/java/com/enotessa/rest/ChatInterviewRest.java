@@ -3,7 +3,9 @@ package com.enotessa.rest;
 import com.enotessa.dto.MessageDto;
 import com.enotessa.dto.ProfessionalPositionDto;
 import com.enotessa.services.ChatService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,24 +15,28 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/interview")
+@AllArgsConstructor
 public class ChatInterviewRest {
-    @Autowired
-    ChatService chatService;
+    private static final Logger logger = LoggerFactory.getLogger(ChatInterviewRest.class);
+    private final ChatService chatService;
 
     @PostMapping("/message")
     public ResponseEntity<MessageDto> sendInterviewMessage(@RequestBody MessageDto request, @AuthenticationPrincipal UserDetails user) {
+        logger.debug("sendInterviewMessage()");
         String message = chatService.sendMessage(request, user);
         return ResponseEntity.ok(new MessageDto("HR", message, LocalDateTime.now()));
     }
 
     @PostMapping("/interviewProfession")
     public ResponseEntity<Void> changeInterviewProfession(@RequestBody ProfessionalPositionDto request, @AuthenticationPrincipal UserDetails user) {
+        logger.debug("changeInterviewProfession()");
         chatService.changeInterviewProfession(request, user);
         return ResponseEntity.ok(null);
     }
 
     @DeleteMapping("/deleteMessages")
     public ResponseEntity<Void> deleteMessages(@AuthenticationPrincipal UserDetails user) {
+        logger.debug("deleteMessages()");
         chatService.deleteMessages(user);
         return ResponseEntity.ok(null);
     }

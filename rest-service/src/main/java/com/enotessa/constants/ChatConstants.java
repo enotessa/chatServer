@@ -17,6 +17,7 @@ public final class ChatConstants {
     public static final String EMPTY_MESSAGE_ERROR = "Message cannot be empty or contain only whitespace";
     public static final String USER_NOT_FOUND_ERROR = "User not found";
     public static final String PROFESSION_IS_EMPTY = "Professional position cannot be empty";
+    public static final String FAILED_GET_RESPONSE = "Failed to get response from GPT service";
 
     public static final String SYSTEM_ROLE = "system";
     public static final String USER_ROLE = "user";

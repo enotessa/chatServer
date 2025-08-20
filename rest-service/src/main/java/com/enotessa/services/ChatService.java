@@ -12,10 +12,11 @@ import com.enotessa.repositories.MessageRepository;
 import com.enotessa.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import org.junit.platform.commons.logging.Logger;
-import org.junit.platform.commons.logging.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,8 +33,9 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MessageService messageService;
 
+    @Transactional
     public String sendMessage(@NonNull MessageDto request, @NonNull UserDetails userDetails) {
-        logger.debug(() -> "Processing message from user: " + userDetails.getUsername());
+        logger.debug("Processing message from user: " + userDetails.getUsername());
         validateMessage(request);
         User user = getUserByLogin(userDetails.getUsername(), userDetails);
         saveUserMessage(request, user);
@@ -45,17 +47,18 @@ public class ChatService {
         try {
             String gptResponse = gptService.sendChatRequest(message, conversationHistory);
             messageService.addMessage(gptResponse, ASSISTANT_ROLE, user, LocalDateTime.now());
-            logger.debug(() -> "Received GPT response: " + gptResponse);
+            logger.debug("Received GPT response: " + gptResponse);
             return gptResponse;
         } catch (Exception e) {
-            logger.error(() -> "Failed to process GPT request for user "+user.getLogin()+": "+e.getMessage());
-            throw new GptServiceException("Failed to get response from GPT service", e);
+            logger.error("Failed to process GPT request for user " + user.getLogin() + ": " + e.getMessage());
+            throw new GptServiceException(FAILED_GET_RESPONSE, e);
         }
     }
 
-
+    @Transactional
     public void changeInterviewProfession(ProfessionalPositionDto request, UserDetails userDetails) {
         if (request.getProfessionalPosition() == null || request.getProfessionalPosition().isBlank()) {
+            logger.error(PROFESSION_IS_EMPTY);
             throw new IllegalArgumentException(PROFESSION_IS_EMPTY);
         }
         User user = getUserByLogin(userDetails.getUsername(), userDetails);
@@ -75,6 +78,7 @@ public class ChatService {
     //---------------------------
     private void validateMessage(MessageDto request) {
         if (request.getMessage().isBlank()) {
+            logger.error(EMPTY_MESSAGE_ERROR);
             throw new IllegalArgumentException(EMPTY_MESSAGE_ERROR);
         }
     }
