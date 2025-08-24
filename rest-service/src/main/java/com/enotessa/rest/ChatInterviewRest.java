@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/interview")
+@RequestMapping("/interview")
 @AllArgsConstructor
 public class ChatInterviewRest {
     private static final Logger logger = LoggerFactory.getLogger(ChatInterviewRest.class);
