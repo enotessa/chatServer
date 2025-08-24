@@ -2,6 +2,7 @@ package com.enotessa.services;
 
 import com.enotessa.dto.AuthResponse;
 import com.enotessa.dto.LoginRequest;
+import com.enotessa.dto.RefreshRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
 import com.enotessa.exceptions.RegisterException;
@@ -26,6 +27,7 @@ public class AuthService {
     private static final String EMAIL_ALREADY_EXISTS = "Email already exists";
     private static final String USER_NOT_FOUND = "User not found";
     private static final String INVALID_PASSWORD = "Invalid password";
+    private static final String INVALID_OR_EXPIRED_REFRESH_TOKEN = "Invalid or expired refresh token";
 
     public AuthResponse register(RegisterRequest request) {
         checkUnique(request);
@@ -72,5 +74,20 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
         return new AuthResponse(accessToken, refreshToken);
+    }
+
+    public AuthResponse refresh(RefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+        String username = jwtService.extractUsername(refreshToken);
+
+        User user = userRepository.findByLogin(username)
+                .orElseThrow(() -> new ValidationException("User not found"));
+
+        if (jwtService.isTokenValid(refreshToken, new CustomUserDetails(user))) {
+            String newAccessToken = jwtService.generateAccessToken(new CustomUserDetails(user));
+            return new AuthResponse(newAccessToken, refreshToken);
+        } else {
+            throw new ValidationException(INVALID_OR_EXPIRED_REFRESH_TOKEN);
+        }
     }
 }
