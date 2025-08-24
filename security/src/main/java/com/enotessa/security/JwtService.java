@@ -16,10 +16,21 @@ import java.util.Date;
 public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
-    @Value("${jwt.expirationMs}")
-    private long expirationMs;
+    @Value("${jwt.accessTokenExpirationMs}")
+    private long accessTokenExpirationMs;
+    @Value("${jwt.accessTokenExpirationMs}")
+    private long refreshTokenExpirationMs;
 
-    public String generateToken(UserDetails userDetails) {
+
+    public String generateAccessToken(UserDetails userDetails) {
+        return generateToken(userDetails, accessTokenExpirationMs);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateToken(userDetails, refreshTokenExpirationMs);
+    }
+
+    public String generateToken(UserDetails userDetails, long expirationMs) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))

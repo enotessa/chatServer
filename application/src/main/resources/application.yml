@@ -16,7 +16,8 @@ server:
   port: 8082
 jwt:
   secret: Y2N8f8z1MPrxvRmfhg9i6LgrNuBxZl8MwVpFXuRvKUI=
-  expirationMs: 3600000 # 1 час
+  accessTokenExpirationMs: 3600000 # 1 час
+  refreshTokenExpirationMs: 86400000 # 1 день
 gpt:
   name: ${GPT_NAME:yandex}
   yandex:

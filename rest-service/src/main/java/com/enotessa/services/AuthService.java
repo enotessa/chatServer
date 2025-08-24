@@ -1,5 +1,6 @@
 package com.enotessa.services;
 
+import com.enotessa.dto.AuthResponse;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
@@ -26,13 +27,16 @@ public class AuthService {
     private static final String USER_NOT_FOUND = "User not found";
     private static final String INVALID_PASSWORD = "Invalid password";
 
-    public String register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         checkUnique(request);
         User user = createUserFromRequest(request);
         userRepository.save(user);
 
         UserDetails userDetails = new CustomUserDetails(user);
-        return jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateAccessToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 
     private User createUserFromRequest(RegisterRequest request) {
@@ -54,7 +58,7 @@ public class AuthService {
         }
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
         String username = request.getLogin();
         User user = userRepository.findByLogin(username)
                 .orElseThrow(() -> new ValidationException(USER_NOT_FOUND));
@@ -64,6 +68,9 @@ public class AuthService {
         }
 
         UserDetails userDetails = new CustomUserDetails(user);
-        return jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateAccessToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 }

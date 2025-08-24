@@ -1,5 +1,6 @@
 package com.enotessa.services;
 
+import com.enotessa.dto.AuthResponse;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
 import com.enotessa.entities.User;
@@ -17,7 +18,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class AuthServiceTest {
@@ -45,11 +47,13 @@ class AuthServiceTest {
 
         when(userRepository.existsByLogin("testuser")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
-        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("token123");
+        when(jwtService.generateAccessToken(any(UserDetails.class))).thenReturn("accessToken123");
+        when(jwtService.generateRefreshToken(any(UserDetails.class))).thenReturn("refreshToken123");
 
-        String token = authService.register(request);
+        AuthResponse authResponse = authService.register(request);
+        AuthResponse authResponseTrue = new AuthResponse("accessToken123", "refreshToken123");
 
-        assertEquals("token123", token);
+        assertEquals(authResponse, authResponseTrue);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
@@ -95,11 +99,11 @@ class AuthServiceTest {
         user.setPassword("password");
 
         when(userRepository.findByLogin("testuser")).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("token123");
+        when(jwtService.generateAccessToken(any(UserDetails.class))).thenReturn("accessToken123");
+        when(jwtService.generateRefreshToken(any(UserDetails.class))).thenReturn("refreshToken123");
 
-        String token = authService.login(request);
-
-        assertEquals("token123", token);
+        AuthResponse authResponse = authService.login(request);
+        AuthResponse authResponseTrue = new AuthResponse("accessToken123", "refreshToken123");
     }
 
     @Test

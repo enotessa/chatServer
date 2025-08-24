@@ -1,8 +1,8 @@
 package com.enotessa.rest;
 
+import com.enotessa.dto.AuthResponse;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RegisterRequest;
-import com.enotessa.dto.TokenResponce;
 import com.enotessa.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -22,16 +22,16 @@ public class AuthRest {
     private static final Logger logger = LoggerFactory.getLogger(AuthRest.class);
 
     @PostMapping("/register")
-    public ResponseEntity<TokenResponce> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request) {
         logger.debug("register()");
-        String token = authService.register(request);
-        return ResponseEntity.ok(new TokenResponce(token));
+        AuthResponse authResponse = authService.register(request);
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponce> login(@RequestBody @Valid LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
         logger.debug("login()");
-        String token = authService.login(request);
-        return ResponseEntity.ok(new TokenResponce(token));
+        AuthResponse authResponse = authService.login(request);
+        return ResponseEntity.ok(authResponse);
     }
 }
