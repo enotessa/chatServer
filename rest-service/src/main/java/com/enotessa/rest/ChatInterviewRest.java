@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/interview")
@@ -21,22 +22,22 @@ public class ChatInterviewRest {
     private final ChatService chatService;
 
     @PostMapping("/message")
-    public ResponseEntity<MessageDto> sendInterviewMessage(@RequestBody MessageDto request, @AuthenticationPrincipal UserDetails user) {
-        logger.debug("sendInterviewMessage()");
-        String message = chatService.sendMessage(request, user);
-        return ResponseEntity.ok(new MessageDto("HR", message, LocalDateTime.now()));
+    public CompletableFuture<ResponseEntity<MessageDto>> sendInterviewMessage(@RequestBody MessageDto request, @AuthenticationPrincipal UserDetails user) {
+        logger.info("sendInterviewMessage()");
+        return chatService.sendMessage(request, user)
+                .thenApply(text -> ResponseEntity.ok(new MessageDto("HR", text, LocalDateTime.now())));
     }
 
     @PostMapping("/interviewProfession")
     public ResponseEntity<Void> changeInterviewProfession(@RequestBody ProfessionalPositionDto request, @AuthenticationPrincipal UserDetails user) {
-        logger.debug("changeInterviewProfession()");
+        logger.info("changeInterviewProfession()");
         chatService.changeInterviewProfession(request, user);
         return ResponseEntity.ok(null);
     }
 
     @DeleteMapping("/deleteMessages")
     public ResponseEntity<Void> deleteMessages(@AuthenticationPrincipal UserDetails user) {
-        logger.debug("deleteMessages()");
+        logger.info("deleteMessages()");
         chatService.deleteMessages(user);
         return ResponseEntity.ok(null);
     }

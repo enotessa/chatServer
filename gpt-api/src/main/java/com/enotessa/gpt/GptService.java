@@ -16,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class GptService {
@@ -44,16 +45,22 @@ public class GptService {
         this.profession = ProfessionEnum.JAVA_MIDDLE;
     }
 
-    public String sendChatRequest(@NonNull String message, @NonNull List<GptMessage> messagesArray) {
+    public CompletableFuture<String> sendChatRequest(@NonNull String message, @NonNull List<GptMessage> messagesArray) {
         try {
             JSONObject body = gptRequestBuilder.createBody(messagesArray);
             HttpRequest request = gptRequestBuilder.createRequest(body);
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            JSONObject json = new JSONObject(response.body());
-
-            return parseResponse(json);
+            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(response -> {
+                        JSONObject json = new JSONObject(response.body());
+                        return parseResponse(json);
+                    })
+                    .exceptionally(throwable -> {
+                        logger.error("Error sending request to OpenAI API: {}", throwable.getMessage(), throwable);
+                        throw new GptApiException(OPENAI_API_ERROR + throwable.getMessage(), throwable);
+                    });
         } catch (Exception e) {
-            throw new RuntimeException(OPENAI_API_ERROR + e.getMessage(), e);
+            logger.error("Error preparing request to OpenAI API: {}", e.getMessage(), e);
+            throw new GptApiException(OPENAI_API_ERROR + e.getMessage(), e);
         }
     }
 

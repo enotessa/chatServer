@@ -28,14 +28,14 @@ public class AuthRest {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request) {
-        logger.debug("register()");
+        logger.info("register()");
         AuthResponse authResponse = authService.register(request);
         return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
-        logger.debug("login()");
+        logger.info("login()");
         AuthResponse authResponse = authService.login(request);
         return ResponseEntity.ok(authResponse);
     }
@@ -43,7 +43,7 @@ public class AuthRest {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody @Valid RefreshRequest request) {
         try {
-            logger.debug("refresh()");
+            logger.info("refresh()");
             AuthResponse authResponse = authService.refresh(request);
             return ResponseEntity.ok(authResponse);
         } catch (ValidationException e) {

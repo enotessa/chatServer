@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.enotessa.constants.ChatConstants.*;
@@ -34,7 +35,7 @@ public class ChatService {
     private final MessageService messageService;
 
     @Transactional
-    public String sendMessage(@NonNull MessageDto request, @NonNull UserDetails userDetails) {
+    public CompletableFuture<String> sendMessage(@NonNull MessageDto request, @NonNull UserDetails userDetails) {
         logger.debug("Processing message from user: " + userDetails.getUsername());
         validateMessage(request);
         User user = getUserByLogin(userDetails.getUsername(), userDetails);
@@ -42,12 +43,14 @@ public class ChatService {
         return processGptResponse(user, request.getMessage());
     }
 
-    private String processGptResponse(User user, String message) {
+    private CompletableFuture<String> processGptResponse(User user, String message) {
         List<GptMessage> conversationHistory = loadConversationHistory(user);
         try {
-            String gptResponse = gptService.sendChatRequest(message, conversationHistory);
-            messageService.addMessage(gptResponse, ASSISTANT_ROLE, user, LocalDateTime.now());
-            logger.debug("Received GPT response: " + gptResponse);
+            CompletableFuture<String> gptResponse = gptService.sendChatRequest(message, conversationHistory);
+            gptResponse.thenAccept(string -> {
+                messageService.addMessage(string, ASSISTANT_ROLE, user, LocalDateTime.now());
+                logger.debug("Received GPT response: " + gptResponse);
+            });
             return gptResponse;
         } catch (Exception e) {
             logger.error("Failed to process GPT request for user " + user.getLogin() + ": " + e.getMessage());
