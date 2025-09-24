@@ -53,25 +53,22 @@ class ChatServiceTest {
         testUser.setLogin("testUser");
     }
 
-    /*
-    @Test
-    void sendMessage_ShouldReturnGptResponse() {
-        // подготовка данных
-        MessageDto request = new MessageDto("user", "Привет", LocalDateTime.now());
 
-        when(userDetails.getUsername()).thenReturn("testUser");
-        when(userRepository.findByLogin("testUser")).thenReturn(Optional.of(testUser));
-        when(messageRepository.findAllByUserOrderByIdAsc(testUser)).thenReturn(List.of());
-        when(gptService.sendChatRequest(eq("Привет"), anyList())).thenReturn("Ответ GPT");
-
-        // вызов метода
-        String response = chatService.sendMessage(request, userDetails);
-
-        // проверка
-        assertEquals("Ответ GPT", response);
-        verify(messageService).addMessage("Привет", "user", testUser, request.getTimestamp());
-        verify(messageService).addMessage(eq("Ответ GPT"), eq("assistant"), eq(testUser), any(LocalDateTime.class));
-    }*/
+//    @Test
+//    void sendMessage_ShouldReturnGptResponse() {
+//        MessageDto request = new MessageDto("user", "Привет", LocalDateTime.now());
+//
+//        when(userDetails.getUsername()).thenReturn("testUser");
+//        when(userRepository.findByLogin("testUser")).thenReturn(Optional.of(testUser));
+//        when(messageRepository.findAllByUserOrderByIdAsc(testUser)).thenReturn(List.of());
+//        when(gptService.sendChatRequest(eq("Привет"), anyList())).thenReturn("Ответ GPT");
+//
+//        String response = chatService.sendMessage(request, userDetails);
+//
+//        assertEquals("Ответ GPT", response);
+//        verify(messageService).addMessage("Привет", "user", testUser, request.getTimestamp());
+//        verify(messageService).addMessage(eq("Ответ GPT"), eq("assistant"), eq(testUser), any(LocalDateTime.class));
+//    }
 
     @Test
     void sendMessage_EmptyMessage_ShouldThrowException() {
@@ -93,7 +90,6 @@ class ChatServiceTest {
 
         chatService.changeInterviewProfession(request, userDetails);
 
-        // проверяем вызовы
         verify(gptService).changeInterviewProfession("Java Developer");
         verify(messageRepository).deleteAll(anyList());
         verify(messageService, times(2)).addMessage(anyString(), anyString(), eq(testUser), any(LocalDateTime.class));
