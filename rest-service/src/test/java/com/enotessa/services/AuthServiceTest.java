@@ -8,12 +8,12 @@ import com.enotessa.exceptions.RegisterException;
 import com.enotessa.exceptions.ValidationException;
 import com.enotessa.repositories.UserRepository;
 import com.enotessa.security.JwtService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
     @Mock
@@ -32,11 +33,6 @@ class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void register_success() {
@@ -104,6 +100,8 @@ class AuthServiceTest {
 
         AuthResponse authResponse = authService.login(request);
         AuthResponse authResponseTrue = new AuthResponse("accessToken123", "refreshToken123");
+
+        assertEquals(authResponse, authResponseTrue);
     }
 
     @Test
