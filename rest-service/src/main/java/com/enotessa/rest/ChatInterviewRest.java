@@ -2,7 +2,6 @@ package com.enotessa.rest;
 
 import com.enotessa.dto.MessageDto;
 import com.enotessa.dto.ProfessionalPositionDto;
-import com.enotessa.entities.User;
 import com.enotessa.services.ChatService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;

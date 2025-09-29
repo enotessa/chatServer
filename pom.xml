@@ -22,6 +22,7 @@
         <module>data-access</module>
         <module>security</module>
         <module>gpt-api</module>
+        <module>kafka</module>
     </modules>
 
     <properties>

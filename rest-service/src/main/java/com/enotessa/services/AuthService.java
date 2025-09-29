@@ -1,5 +1,6 @@
 package com.enotessa.services;
 
+import com.enotessa.AuthEventProducer;
 import com.enotessa.dto.AuthResponse;
 import com.enotessa.dto.LoginRequest;
 import com.enotessa.dto.RefreshRequest;
@@ -10,17 +11,18 @@ import com.enotessa.exceptions.ValidationException;
 import com.enotessa.repositories.UserRepository;
 import com.enotessa.security.CustomUserDetails;
 import com.enotessa.security.JwtService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final AuthEventProducer authEventProducer;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private static final String LOGIN_ALREADY_EXISTS = "Login already exists";
@@ -38,6 +40,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
+        authEventProducer.sendUserRegistered(String.valueOf(user.getId()));
         return new AuthResponse(accessToken, refreshToken);
     }
 
@@ -73,6 +76,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
+        authEventProducer.sendUserLoggedIn(String.valueOf(user.getId()));
         return new AuthResponse(accessToken, refreshToken);
     }
 
