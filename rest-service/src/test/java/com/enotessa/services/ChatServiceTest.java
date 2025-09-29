@@ -2,7 +2,6 @@ package com.enotessa.services;
 
 import com.enotessa.dto.MessageDto;
 import com.enotessa.dto.ProfessionalPositionDto;
-import com.enotessa.entities.Message;
 import com.enotessa.entities.User;
 import com.enotessa.gpt.GptService;
 import com.enotessa.repositories.MessageRepository;
@@ -18,6 +17,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,21 +55,21 @@ class ChatServiceTest {
     }
 
 
-//    @Test
-//    void sendMessage_ShouldReturnGptResponse() {
-//        MessageDto request = new MessageDto("user", "Привет", LocalDateTime.now());
-//
-//        when(userDetails.getUsername()).thenReturn("testUser");
-//        when(userRepository.findByLogin("testUser")).thenReturn(Optional.of(testUser));
-//        when(messageRepository.findAllByUserOrderByIdAsc(testUser)).thenReturn(List.of());
-//        when(gptService.sendChatRequest(eq("Привет"), anyList())).thenReturn("Ответ GPT");
-//
-//        String response = chatService.sendMessage(request, userDetails);
-//
-//        assertEquals("Ответ GPT", response);
-//        verify(messageService).addMessage("Привет", "user", testUser, request.getTimestamp());
-//        verify(messageService).addMessage(eq("Ответ GPT"), eq("assistant"), eq(testUser), any(LocalDateTime.class));
-//    }
+    @Test
+    void sendMessage_ShouldReturnGptResponse() throws ExecutionException, InterruptedException {
+        MessageDto request = new MessageDto("user", "Привет", LocalDateTime.now());
+
+        when(userDetails.getUsername()).thenReturn("testUser");
+        when(userRepository.findByLogin("testUser")).thenReturn(Optional.of(testUser));
+        when(messageRepository.findAllByUserOrderByIdAsc(testUser)).thenReturn(List.of());
+        when(gptService.sendChatRequest(eq("Привет"), anyList())).thenReturn(CompletableFuture.completedFuture("Ответ GPT"));
+
+        String response = chatService.sendMessage(request, userDetails).get();
+
+        assertEquals("Ответ GPT", response);
+        verify(messageService).addMessage("Привет", "user", testUser, request.getTimestamp());
+        verify(messageService).addMessage(eq("Ответ GPT"), eq("assistant"), eq(testUser), any(LocalDateTime.class));
+    }
 
     @Test
     void sendMessage_EmptyMessage_ShouldThrowException() {
@@ -77,7 +78,7 @@ class ChatServiceTest {
         Exception exception = assertThrows(IllegalArgumentException.class, () ->
                 chatService.sendMessage(request, userDetails));
 
-        assertEquals("Message cannot be empty", exception.getMessage());
+        assertEquals("Message cannot be empty or contain only whitespace", exception.getMessage());
     }
 
     @Test
@@ -86,12 +87,11 @@ class ChatServiceTest {
 
         when(userDetails.getUsername()).thenReturn("testUser");
         when(userRepository.findByLogin("testUser")).thenReturn(Optional.of(testUser));
-        when(messageRepository.findAllByUserOrderByIdAsc(testUser)).thenReturn(List.of(new Message(), new Message()));
 
         chatService.changeInterviewProfession(request, userDetails);
 
         verify(gptService).changeInterviewProfession("Java Developer");
-        verify(messageRepository).deleteAll(anyList());
+        verify(messageRepository).deleteAllByUser(any());
         verify(messageService, times(2)).addMessage(anyString(), anyString(), eq(testUser), any(LocalDateTime.class));
     }
 }
